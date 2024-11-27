@@ -53,4 +53,4 @@ Included in this repository are the following items:
   - SurfsUp directory
     - climate_starter.ipynb (Part 1)
     - app.py (Part 2)
-    - Resources directory containing 6 CSV files with the data to populate tables
+    - Resources directory containing sqlite file and 2 csv files.
