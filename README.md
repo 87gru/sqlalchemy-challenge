@@ -36,7 +36,7 @@ In Part 2, I create simple APIs using the Flask library, based on the queries in
     - Instead, I created a dictionary where the key is the `date` and the value is a dictionary containing `tmin`, `tmax` and `tavg` values.
     - Results look like this:
 ~~~
-    [
+[
   {
     "2013-02-03": {
       "tobs_avg": 66.71,
