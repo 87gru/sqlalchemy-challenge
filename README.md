@@ -35,7 +35,7 @@ In Part 2, I create simple APIs using the Flask library, based on the queries in
     - I adopted a different approach from the instructions in the homework. The instructions state to provide a jsonified list of the `tmin`, `tmax` and `tavg` for the specified dates.
     - Instead, I created a dictionary where the key is the `date` and the value is a dictionary containing `tmin`, `tmax` and `tavg` values.
     - Results look like this:
-    ```
+~~~
     [
   {
     "2013-02-03": {
@@ -44,7 +44,8 @@ In Part 2, I create simple APIs using the Flask library, based on the queries in
       "tobs_min": 58.0
     }
   },
-    ```
+~~~
+
 ## Repository Breakdown
 Included in this repository are the following items:
   - README.md
