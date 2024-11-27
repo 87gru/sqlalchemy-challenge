@@ -1,12 +1,10 @@
 # Import the dependencies.
 import numpy as np
 import datetime as dt
-
 import sqlalchemy
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import Session
 from sqlalchemy import create_engine, func
-
 from flask import Flask, jsonify
 
 
@@ -27,6 +25,10 @@ Base.classes.keys()
 Measurement = Base.classes.measurement
 Station = Base.classes.station
 
+# Store last date of dataset into last_date variable, then use dt.timedelta to calculate 12 month difference and store result into last_twelve_months variable.
+last_date = dt.date(2017,8,23)
+last_twelve_months = last_date - dt.timedelta(days=365)
+
 
 #################################################
 # Flask Setup
@@ -38,7 +40,7 @@ app = Flask(__name__)
 # Flask Routes
 #################################################
 
-# Home route. List routes.
+# Homepage route. List all available routes.
 @app.route("/")
 def welcome():
     return (
@@ -52,8 +54,6 @@ def welcome():
         f"</br>"
         f"**Please enter date in 'YYYY-MM-DD' format</br>"
         f"Example: /api/v1.0/2011-01-01</br>"
-        f"</br>"
-        f"</br>"
 
     )
 
@@ -63,15 +63,10 @@ def precipitation():
     # Create our session (link) from Python to the DB
     session = Session(engine)
 
-    # Retrieve last 12 months of prcp data:
-    # Establish date variables
-    last_date = dt.date(2017,8,23)
-    first_date = last_date - dt.timedelta(days=365)
-
-    # Query
+    # Query, store into results variable
     results = session.query(Measurement.date, Measurement.prcp).\
     filter(Measurement.date <= last_date).\
-    filter(Measurement.date >= first_date).all()
+    filter(Measurement.date >= last_twelve_months).all()
 
     # Close session
     session.close()
@@ -86,6 +81,7 @@ def precipitation():
         prcp_dict[date] = prcp
         prcp_list.append(prcp_dict)
 
+    #JSONify list
     return jsonify(prcp_list)
 
 # stations route
@@ -103,6 +99,7 @@ def stations():
     # Return a JSON list of stations from the dataset. Convert list of tuples to standard list
     all_stations = list(np.ravel(results))
 
+    #JSONify list
     return jsonify(all_stations)
 
 # tobs route
@@ -111,16 +108,11 @@ def tobs():
     # Create our session (link) from Python to the DB
     session = Session(engine)
 
-    # Retrieve last 12 months of prcp data:
-    # Establish date variables
-    last_date = dt.date(2017,8,23)
-    first_date = last_date - dt.timedelta(days=365)
-
     # Query all temperature observations for the last 12 months for the most
     # active station -- USC00519281
     results = session.query(Measurement.tobs).\
     filter(Measurement.date <= last_date).\
-    filter(Measurement.date >= first_date).\
+    filter(Measurement.date >= last_twelve_months).\
     filter(Measurement.station == 'USC00519281').all()
 
     # Close session
@@ -129,12 +121,13 @@ def tobs():
     # Return a JSON list of temperature observations for the previous year. 
     # Convert list of tuples to standard list
     all_tobs = list(np.ravel(results))
-
+    
+    #JSONify list
     return jsonify(all_tobs)
 
 # start_date route
 @app.route("/api/v1.0/<start>")
-def start_date(start):
+def start_date(start): # User will enter start date in browser in YYYY-MM-DD format.
     # Create our session (link) from Python to the DB
     session = Session(engine)
 
@@ -146,7 +139,7 @@ def start_date(start):
     # If date exists:
     if start in all_dates_list:
         
-        # List for querying
+        # List for querying. Use func.min, max, avg.
         sel = [Measurement.date, func.min(Measurement.tobs), func.max(Measurement.tobs), func.avg(Measurement.tobs)]
 
         # Query, store results into results variable
@@ -172,7 +165,7 @@ def start_date(start):
 
         # JSONify the list
         return jsonify(list_for_dict)
-    # If date doesn't exist, return error message
+    # If date is not in all_dates_list, return error message
     else: return jsonify({'error': 'date not found'}),404
 
 # specified date_range route
@@ -213,9 +206,9 @@ def date_range(start,end):
             date_dict[date] = temp_dict
             list_for_dict.append(date_dict)
 
-        # Jsonify the list
+        # JSONify the list
         return jsonify(list_for_dict)
-    # If date is not present in list, return error message.
+    # If date is not present in all_dates_list, return error message.
     else: return jsonify({'error': 'date not found'}),404
 
 if __name__ == '__main__':
